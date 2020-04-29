@@ -19,13 +19,13 @@ public:
             }
             case IType::Ld:
             {
-                instr->_addr = alu_processing(instr); // ??????
+                instr->_addr = alu_processing(instr);
                 instr->_nextIp = ip + 4;
                 break;
             }
             case IType::St:
             {
-                instr->_addr = alu_processing(instr); // ???????????
+                instr->_addr = alu_processing(instr);
                 instr->_data = instr->_src2Val;
                 instr->_nextIp = ip + 4;
                 break;
@@ -40,10 +40,6 @@ public:
             {
                 instr->_data = instr->_csrVal;
                 instr->_nextIp = ip + 4;
-                break;
-            }
-            case IType::Unsupported:
-            {
                 break;
             }
             case IType::J:
@@ -61,7 +57,7 @@ public:
             }
             case IType::Jr:
             {
-                instr->_data = ip + 4; // ??????????
+                instr->_data = ip + 4;
 
                 bool processing_result = branching_processing(instr);
                 if (processing_result)
@@ -80,7 +76,6 @@ public:
     }
 
 private:
-    // Add helper functions here
     Word alu_processing (InstructionPtr& instr)
     {
         Word first_operand, second_operand;
@@ -99,45 +94,40 @@ private:
             is_valid = false;
 
         if (is_valid) {
-            switch (instr->_aluFunc) {
-                case AluFunc::Add: {
+            switch (instr->_aluFunc)
+            {
+                case AluFunc::Add:
                     return first_operand + second_operand;
-                }
-                case AluFunc::Sub: {
+                case AluFunc::Sub:
                     return first_operand - second_operand;
-                }
-                case AluFunc::And: {
+                case AluFunc::And:
                     return first_operand & second_operand;
-                }
-                case AluFunc::Or: {
+                case AluFunc::Or:
                     return first_operand | second_operand;
-                }
-                case AluFunc::Xor: {
+                case AluFunc::Xor:
                     return first_operand ^ second_operand;
-                }
-                case AluFunc::Slt: {
+
+                case AluFunc::Slt:
+                {
                     int first_value = first_operand, second_value = second_operand;
                     return first_value < second_value;
                 }
-                case AluFunc::Sltu: {
+                case AluFunc::Sltu:
                     return first_operand < second_operand;
-                }
-                case AluFunc::Sll: {
+                case AluFunc::Sll:
                     return first_operand << (second_operand % 32);
-                }
-                case AluFunc::Srl: {
+                case AluFunc::Srl:
                     return first_operand >> (second_operand % 32);
-                }
-                case AluFunc::Sra: {
+                case AluFunc::Sra:
+                {
                     int number = first_operand;
                     number = number >> (second_operand % 32);
                     return Word(number);
                 }
-                default: {
-                    break;
-                }
             }
         }
+
+        return Word();
     }
 
     bool branching_processing(InstructionPtr& instr)
@@ -203,7 +193,6 @@ private:
             }
         }
     }
-
 };
 
 #endif // RISCV_SIM_EXECUTOR_H
