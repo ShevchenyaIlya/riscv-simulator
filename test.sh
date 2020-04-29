@@ -2,27 +2,53 @@
 
 exe_file=$1;
 
-asm_tests=(
-          simple
-          add addi
-          and andi
-          auipc
-          beq bge bgeu blt bltu bne
-          j jal jalr
-          lw
-          lui
-          or ori
-          sw
-          sll slli
-          slt slti
-          sra srai
-          srl srli
-          sub
-          xor xori
-          bpred_bht bpred_j bpred_ras
-          cache
-      );
-vmh_dir=programs/build/assembly/bin;
+if [ -z $testResponse ]; then
+    echo "What would you program would you like to run?"
+    echo "1) asm tests"
+    echo "2) small benchmarks"
+    echo "3) big benchmarks"
+    read testResponse
+fi
+
+
+case $testResponse in
+    1) asm_tests=(
+	         simple
+	         add addi
+	         and andi
+	         auipc
+	         beq bge bgeu blt bltu bne
+	         j jal jalr
+	         lw
+	         lui
+	         or ori
+	         sw
+	         sll slli
+	         slt slti
+	         sra srai
+	         srl srli
+	         sub
+	         xor xori
+	         bpred_bht bpred_j bpred_ras
+	         cache
+	     );
+       vmh_dir=programs/build/assembly/bin;;
+    2) asm_tests=(
+	        median
+	        multiply
+	        qsort
+	        vvadd
+#               towers
+	     ); vmh_dir=programs/build/smallbenchmarks/bin;;
+    3) asm_tests=(
+	        median
+	        multiply
+	        qsort
+	        vvadd
+#               towers
+	     ); vmh_dir=programs/build/bigbenchmarks/bin;;
+    *)  echo "ERROR: Unexpected response: $response" ; exit ;;
+esac
 
 SOFTWARE_SOCKET_NAME=/tmp/connectal$USER
 export SOFTWARE_SOCKET_NAME
