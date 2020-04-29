@@ -5,19 +5,14 @@
 #include <optional>
 
 
-// First task. Instruction per tact: 0.007611794
+// First task. Instruction per tact: 0.007611794. Info stored in info.odt file.
 
 int main()
 {
     MemoryStorage mem ;
-    //mem.LoadElf("../programs/build/assembly/dump/add.riscv");
     mem.LoadElf("program");
-    // TODO: Change this stupid names
-    UncachedMem memory = UncachedMem (mem);
-    //Word value = ToLineAddr(1);
-    //Word offset = ToLineOffset(600);
-    CachedMem mema = CachedMem(memory);
-    std::unique_ptr<CachedMem> memModelPtr( new CachedMem(memory));
+    UncachedMem uncachedMem = UncachedMem (mem);
+    std::unique_ptr<CachedMem> memModelPtr( new CachedMem(uncachedMem));
     Cpu cpu{*memModelPtr};
     cpu.Reset(0x200);
 
