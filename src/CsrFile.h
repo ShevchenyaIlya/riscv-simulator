@@ -36,10 +36,20 @@ public:
             cpuToHostData = CpuToHostData{instr->_data};
         }
     }
+
     void InstructionExecuted()
     {
         numInstr++;
+    }
+
+    void Clock()
+    {
         numCycles++;
+    }
+
+    Word getNumCycles()
+    {
+        return this->numCycles;
     }
 
     std::optional<CpuToHostData> GetMessage()
