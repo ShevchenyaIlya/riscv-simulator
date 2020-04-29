@@ -47,7 +47,7 @@ public:
         numCycles++;
     }
 
-    Word getNumCycles()
+    Word getCycleNumber()
     {
         return this->numCycles;
     }
