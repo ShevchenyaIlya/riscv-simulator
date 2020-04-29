@@ -16,6 +16,4 @@ CMakeFiles/riscv_sim.dir/src/main.cpp.o: ../src/Memory.h
 CMakeFiles/riscv_sim.dir/src/main.cpp.o: ../src/PoolAllocator.h
 CMakeFiles/riscv_sim.dir/src/main.cpp.o: ../src/RegisterFile.h
 CMakeFiles/riscv_sim.dir/src/main.cpp.o: ../src/main.cpp
-CMakeFiles/riscv_sim.dir/src/main.cpp.o: ../src/test_decoder.h
-CMakeFiles/riscv_sim.dir/src/main.cpp.o: ../src/test_executor.h
 

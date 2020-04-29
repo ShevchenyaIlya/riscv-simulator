@@ -43,10 +43,10 @@ RM = /opt/clion-2019.3.4/bin/cmake/linux/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2"
+CMAKE_SOURCE_DIR = /home/shevchenya/Загрузки/acs-spring-l3
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug"
+CMAKE_BINARY_DIR = /home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/riscv_sim.dir/depend.make
@@ -59,29 +59,29 @@ include CMakeFiles/riscv_sim.dir/flags.make
 
 CMakeFiles/riscv_sim.dir/src/Instruction.cpp.o: CMakeFiles/riscv_sim.dir/flags.make
 CMakeFiles/riscv_sim.dir/src/Instruction.cpp.o: ../src/Instruction.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/riscv_sim.dir/src/Instruction.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/riscv_sim.dir/src/Instruction.cpp.o -c "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/src/Instruction.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/riscv_sim.dir/src/Instruction.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/riscv_sim.dir/src/Instruction.cpp.o -c /home/shevchenya/Загрузки/acs-spring-l3/src/Instruction.cpp
 
 CMakeFiles/riscv_sim.dir/src/Instruction.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/riscv_sim.dir/src/Instruction.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/src/Instruction.cpp" > CMakeFiles/riscv_sim.dir/src/Instruction.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/shevchenya/Загрузки/acs-spring-l3/src/Instruction.cpp > CMakeFiles/riscv_sim.dir/src/Instruction.cpp.i
 
 CMakeFiles/riscv_sim.dir/src/Instruction.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/riscv_sim.dir/src/Instruction.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/src/Instruction.cpp" -o CMakeFiles/riscv_sim.dir/src/Instruction.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/shevchenya/Загрузки/acs-spring-l3/src/Instruction.cpp -o CMakeFiles/riscv_sim.dir/src/Instruction.cpp.s
 
 CMakeFiles/riscv_sim.dir/src/main.cpp.o: CMakeFiles/riscv_sim.dir/flags.make
 CMakeFiles/riscv_sim.dir/src/main.cpp.o: ../src/main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/riscv_sim.dir/src/main.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/riscv_sim.dir/src/main.cpp.o -c "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/src/main.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/riscv_sim.dir/src/main.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/riscv_sim.dir/src/main.cpp.o -c /home/shevchenya/Загрузки/acs-spring-l3/src/main.cpp
 
 CMakeFiles/riscv_sim.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/riscv_sim.dir/src/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/src/main.cpp" > CMakeFiles/riscv_sim.dir/src/main.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/shevchenya/Загрузки/acs-spring-l3/src/main.cpp > CMakeFiles/riscv_sim.dir/src/main.cpp.i
 
 CMakeFiles/riscv_sim.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/riscv_sim.dir/src/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/src/main.cpp" -o CMakeFiles/riscv_sim.dir/src/main.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/shevchenya/Загрузки/acs-spring-l3/src/main.cpp -o CMakeFiles/riscv_sim.dir/src/main.cpp.s
 
 # Object files for target riscv_sim
 riscv_sim_OBJECTS = \
@@ -95,7 +95,7 @@ riscv_sim: CMakeFiles/riscv_sim.dir/src/Instruction.cpp.o
 riscv_sim: CMakeFiles/riscv_sim.dir/src/main.cpp.o
 riscv_sim: CMakeFiles/riscv_sim.dir/build.make
 riscv_sim: CMakeFiles/riscv_sim.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable riscv_sim"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable riscv_sim"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/riscv_sim.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -108,6 +108,6 @@ CMakeFiles/riscv_sim.dir/clean:
 .PHONY : CMakeFiles/riscv_sim.dir/clean
 
 CMakeFiles/riscv_sim.dir/depend:
-	cd "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2" "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2" "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug" "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug" "/home/shevchenya/Загрузки/acs-spring-l2(1)/acs-spring-l2/cmake-build-debug/CMakeFiles/riscv_sim.dir/DependInfo.cmake" --color=$(COLOR)
+	cd /home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/shevchenya/Загрузки/acs-spring-l3 /home/shevchenya/Загрузки/acs-spring-l3 /home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug /home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug /home/shevchenya/Загрузки/acs-spring-l3/cmake-build-debug/CMakeFiles/riscv_sim.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/riscv_sim.dir/depend
 
