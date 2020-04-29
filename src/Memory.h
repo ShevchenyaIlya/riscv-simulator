@@ -4,21 +4,36 @@
 
 #include "Instruction.h"
 #include <iostream>
+#include <algorithm>
 #include <fstream>
 #include <elf.h>
 #include <cstring>
 #include <vector>
+#include <cassert>
+#include <map>
 
-class Memory
-{
+
+//static constexpr size_t memSize = 4*1024*1024; // memory size in 4-byte words
+static constexpr size_t memSize = 1024*1024; // memory size in 4-byte words
+
+static constexpr size_t lineSizeBytes = 128;
+static constexpr size_t lineSizeWords = lineSizeBytes / sizeof(Word);
+using Line = std::array<Word, lineSizeWords>;
+static constexpr size_t dataCacheBytes = 4096;
+static constexpr size_t codeCacheBytes = 1024;
+static Word ToWordAddr(Word ip) { return ip >> 2u; }
+static Word ToLineAddr(Word ip) { return ip & ~(lineSizeBytes - 1); }
+static Word ToLineOffset(Word ip) { return ToWordAddr(ip) & (lineSizeWords - 1); }
+
+class MemoryStorage {
 public:
-    Memory()
+
+    MemoryStorage()
     {
-        mem.fill(0);
+        _mem.resize(memSize);
     }
 
-    bool LoadElf(const std::string& elf_filename)
-    {
+    bool LoadElf(const std::string &elf_filename) {
         std::ifstream elffile;
         elffile.open(elf_filename, std::ios::in | std::ios::binary);
 
@@ -58,31 +73,29 @@ public:
 
         if (e_ident[EI_CLASS] == ELFCLASS32) {
             // 32-bit ELF
-            return this->load_elf_specific<Elf32_Ehdr, Elf32_Phdr>(buf.data(), buf_sz);
+            return this->LoadElfSpecific<Elf32_Ehdr, Elf32_Phdr>(buf.data(), buf_sz);
         } else if (e_ident[EI_CLASS] == ELFCLASS64) {
             // 64-bit ELF
-            return this->load_elf_specific<Elf64_Ehdr, Elf64_Phdr>(buf.data(), buf_sz);
+            return this->LoadElfSpecific<Elf64_Ehdr, Elf64_Phdr>(buf.data(), buf_sz);
         } else {
             std::cerr << "ERROR: load_elf: file is neither 32-bit nor 64-bit" << std::endl;
             return false;
         }
     }
-    Word Request(Word ip)
+
+    Word Read(Word ip)
     {
-        return mem[ToWordAddr(ip)];
+        return _mem[ToWordAddr(ip)];
     }
 
-    void Request(InstructionPtr& instr)
+    void Write(Word ip, Word data)
     {
-        if (instr->_type == IType::Ld)
-            instr->_data = mem[ToWordAddr(instr->_addr)];
-        else if (instr->_type == IType::St)
-            mem[ToWordAddr(instr->_addr)] = instr->_data;
+        _mem[ToWordAddr(ip)] = data;
     }
 
 private:
     template <typename Elf_Ehdr, typename Elf_Phdr>
-    bool load_elf_specific(char* buf, size_t buf_sz) {
+    bool LoadElfSpecific(char *buf, size_t buf_sz) {
         // 64-bit ELF
         Elf_Ehdr *ehdr = (Elf_Ehdr*) buf;
         Elf_Phdr *phdr = (Elf_Phdr*) (buf + ehdr->e_phoff);
@@ -90,7 +103,7 @@ private:
             std::cerr << "ERROR: load_elf: file too small for expected number of program header tables" << std::endl;
             return false;
         }
-        auto memptr = reinterpret_cast<char*>(mem.data());
+        auto memptr = reinterpret_cast<char*>(_mem.data());
         // loop through program header tables
         for (int i = 0 ; i < ehdr->e_phnum ; i++) {
             if ((phdr[i].p_type == PT_LOAD) && (phdr[i].p_memsz > 0)) {
@@ -119,10 +132,293 @@ private:
         return true;
     }
 
+    std::vector<Word> _mem;
+};
 
-    static Word ToWordAddr(Word ip) { return ip >> 2u; }
-    static constexpr size_t size = 128*1024; // memory size in 4-byte words
-    std::array<Word, size> mem;
+
+class IMem
+{
+public:
+    IMem() = default;
+    virtual ~IMem() = default;
+    IMem(const IMem &) = delete;
+    IMem(IMem &&) = delete;
+
+    IMem& operator=(const IMem&) = delete;
+    IMem& operator=(IMem&&) = delete;
+
+    virtual void Request(Word ip) = 0;
+    virtual std::optional<Word> Response() = 0;
+    virtual void Request(InstructionPtr &instr) = 0;
+    virtual bool Response(InstructionPtr &instr) = 0;
+    virtual void Clock() = 0;
+    virtual size_t getWaitCycles() = 0;
+};
+
+class UncachedMem : public IMem
+{
+public:
+    explicit UncachedMem(MemoryStorage& amem)
+            : _mem(amem)
+    {
+
+    }
+
+
+    void Request(Word ip)
+    {
+        if (ip != _requestedIp) {
+            _requestedIp = ip;
+            _waitCycles = latency;
+        }
+    }
+
+    std::optional<Word> Response()
+    {
+        if (_waitCycles > 0)
+            return std::optional<Word>();
+        return _mem.Read(_requestedIp);
+    }
+
+    void Request(InstructionPtr &instr)
+    {
+        if (instr->_type != IType::Ld && instr->_type != IType::St)
+            return;
+
+        Request(instr->_addr);
+    }
+
+    bool Response(InstructionPtr &instr)
+    {
+        if (instr->_type != IType::Ld && instr->_type != IType::St)
+            return true;
+
+        if (_waitCycles != 0)
+            return false;
+
+        if (instr->_type == IType::Ld)
+            instr->_data = _mem.Read(instr->_addr);
+        else if (instr->_type == IType::St)
+            _mem.Write(instr->_addr, instr->_data);
+
+        return true;
+    }
+
+    Word getWordToCache(Word ip)
+    {
+        return _mem.Read(ip);
+    }
+
+
+    void writeWordToUncache(Word ip, Word data)
+    {
+        _mem.Write(ip, data);
+    }
+
+    void Clock()
+    {
+        if (_waitCycles > 0)
+            --_waitCycles;
+    }
+
+    size_t getWaitCycles()
+    {
+        return _waitCycles;
+    }
+
+
+private:
+    // TODO: Change latency for 120
+    static constexpr size_t latency = 1;
+    Word _requestedIp = 0;
+    size_t _waitCycles = 0;
+    MemoryStorage& _mem;
+};
+
+// TODO: Create cache for data and for code that works for 1 and 3 ticks
+// TODO: Refactor to make this code mode beautiful and functionally right
+// TODO: Fix memory loading latency
+class CachedMem
+{
+public:
+    CachedMem(UncachedMem& uncachedMem): _mem(uncachedMem)
+    {
+
+    }
+
+    void Request(Word ip)
+    {
+        if (ip != _memoryRequestIp) {
+            _memoryRequestIp = ip;
+            Word lineAddr = ToLineAddr(_memoryRequestIp);
+            Word offset = ToLineOffset(_memoryRequestIp);
+            bool inCache = false;
+            for (int i = 0; i < codeCacheBytes / lineSizeBytes; ++i) {
+                if (_codeMem[i].second == lineAddr) {
+                    lineAddr = i;
+                    inCache = true;
+                    break;
+                }
+            }
+            _requestedIp = lineAddr;
+            _requestedOffset = offset;
+            if (inCache) {
+                _waitCycles = codeLatency;
+                _miss = false;
+            } else {
+                _miss = true;
+                _waitCycles = failLatency;
+            }
+        }
+    }
+
+    std::optional<Word> Response(Word responseTime)
+    {
+        if (_waitCycles > 0)
+            return std::optional<Word>();
+
+        if (_miss)
+        {
+            Line memoryLine = { 0 };
+            for (int i = 0; i < lineSizeWords; ++i) {
+                memoryLine[i] = _mem.getWordToCache(_requestedIp + 4 * i);
+            }
+
+            // TODO: Change for function that return index in vector
+            Word latestUsage = *min_element(_lastCodeUsage.begin(), _lastCodeUsage.end());
+            Word index = 0;
+            for (int j = 0; j < codeCacheBytes / lineSizeWords; ++j) {
+                if (_lastCodeUsage[j] == latestUsage)
+                {
+                    index = j;
+                    break;
+                }
+            }
+            //Word index = *std::find(_lastCodeUsage.begin(), _lastCodeUsage.end(), latestUsage);
+
+            if (latestUsage != 0)
+            {
+                for (int i = 0; i < lineSizeWords; ++i) {
+                    _mem.writeWordToUncache(_codeMem[index].second + 4 * i, _codeMem[index].first[i]);
+                }
+            }
+            _codeMem[index] = std::pair<Line, Word>(memoryLine, _requestedIp);
+            _lastCodeUsage[index] = responseTime;
+
+            return memoryLine[_requestedOffset];
+        } else {
+            _lastCodeUsage[_requestedIp] = responseTime;
+            return _codeMem[_requestedIp].first[_requestedOffset];
+        }
+    }
+
+    void Request(InstructionPtr &instr)
+    {
+        if (instr->_type != IType::Ld && instr->_type != IType::St)
+            return;
+
+        Word lineAddr = ToLineAddr(instr->_addr);
+        Word offset = ToLineOffset(instr->_addr);
+        bool inCache = false;
+        for (int i = 0; i < dataCacheBytes / lineSizeBytes; ++i) {
+            if (_dataMem[i].second == lineAddr) {
+                lineAddr = i;
+                inCache = true;
+                break;
+            }
+        }
+        _requestedIp = lineAddr;
+        _requestedOffset = offset;
+        if (inCache) {
+            _waitCycles = dataLatency;
+            _miss = false;
+        } else {
+            _miss = true;
+            _waitCycles = failLatency;
+        }
+    }
+
+    bool Response(InstructionPtr &instr, Word responseTime)
+    {
+        if (instr->_type != IType::Ld && instr->_type != IType::St)
+            return true;
+
+        if (_waitCycles != 0)
+            return false;
+
+        if (_miss)
+        {
+            Line memoryLine = { 0 };
+
+            if (instr->_type == IType::St)
+                _mem.writeWordToUncache(instr->_addr, instr->_data);
+
+            for (int i = 0; i < lineSizeWords; ++i) {
+                memoryLine[i] = _mem.getWordToCache(_requestedIp + 4 * i);
+            }
+
+            // TODO: Change for function that return index in vector
+            Word latestUsage = *min_element(_lastDataUsage.begin(), _lastDataUsage.end());
+            Word index = 0;
+            for (int j = 0; j < dataCacheBytes / lineSizeWords; ++j) {
+                if (_lastDataUsage[j] == latestUsage)
+                {
+                    index = j;
+                    break;
+                }
+            }
+            //Word index = *std::find(_lastCodeUsage.begin(), _lastCodeUsage.end(), latestUsage);
+
+            if (latestUsage != 0)
+            {
+                for (int i = 0; i < lineSizeWords; ++i) {
+                    _mem.writeWordToUncache(_dataMem[index].second + 4 * i, _dataMem[index].first[i]);
+                }
+            }
+            _dataMem[index] = std::pair<Line, Word>(memoryLine, _requestedIp);
+            _lastDataUsage[index] = responseTime;
+
+            if (instr->_type == IType::Ld)
+                instr->_data = memoryLine[_requestedOffset];
+        }
+        else
+        {
+            _lastDataUsage[_requestedIp] = responseTime;
+            if (instr->_type == IType::Ld)
+                instr->_data = _dataMem[_requestedIp].first[_requestedOffset];
+            else if (instr->_type == IType::St)
+                _dataMem[_requestedIp].first[_requestedOffset] = instr->_data;
+        }
+
+        return true;
+    }
+
+    void Clock()
+    {
+        if (_waitCycles > 0)
+            --_waitCycles;
+    }
+
+    size_t getWaitCycles()
+    {
+        return _waitCycles;
+    }
+private:
+    // TODO: Replace for 152
+    static constexpr size_t failLatency = 152;
+    static constexpr size_t codeLatency = 1;
+    static constexpr size_t dataLatency = 3;
+
+    Word _memoryRequestIp = 0;
+    Word _requestedIp = 0;
+    Word _requestedOffset = 0;
+    size_t _waitCycles = 0;
+    bool _miss = false;
+    std::vector<std::pair<Line, Word>> _dataMem = std::vector<std::pair<Line, Word>>(dataCacheBytes/lineSizeBytes);;
+    std::vector<std::pair<Line, Word>> _codeMem = std::vector<std::pair<Line, Word>>(codeCacheBytes/lineSizeBytes);;
+    std::vector<Word> _lastDataUsage = std::vector<Word> (dataCacheBytes/lineSizeBytes);
+    std::vector<Word> _lastCodeUsage = std::vector<Word> (codeCacheBytes/lineSizeBytes);
+    UncachedMem& _mem;
 };
 
 #endif //RISCV_SIM_DATAMEMORY_H
