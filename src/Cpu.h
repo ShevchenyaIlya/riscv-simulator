@@ -11,30 +11,48 @@
 class Cpu
 {
 public:
-    Cpu(Memory& mem)
+    Cpu(CachedMem& mem)
         : _mem(mem)
     {
 
     }
 
-    void ProcessInstruction()
+    void Clock()
     {
-        // Add your code here
-        // Get instructions from ip
-        // Call Decoder
-        // Call Execute file
-        Word instr = _mem.Request(this->_ip);
-        InstructionPtr instruction = _decoder.Decode(instr);
-        _rf.Read(instruction);
-        _csrf.Read(instruction);
-        _exe.Execute(instruction, _ip);
-        // ОБращение в память !!!
-        _mem.Request(instruction);
-        _rf.Write(instruction);
-        _csrf.Write(instruction);
-        // Вычисление нововго ip !!!
-        _csrf.InstructionExecuted();
-        _ip = instruction->_nextIp;
+        _csrf.Clock();
+
+        if (_mem.getWaitCycles() == 0)
+        {
+            if (!_waitingInstruction) {
+                _mem.Request(this->_ip);
+                std::optional<Word> instr = _mem.Response(_csrf.getNumCycles());
+
+                if (instr == std::optional<Word>())
+                    return;
+
+                Word instrCode = *instr;
+                _instruction = _decoder.Decode(instrCode);
+                _rf.Read(_instruction);
+                _csrf.Read(_instruction);
+                _exe.Execute(_instruction, _ip);
+                // Memory request
+                _mem.Request(_instruction);
+                _memoryWaiting = _mem.Response(_instruction, _csrf.getNumCycles());
+                if (!_memoryWaiting) {
+                    _waitingInstruction = static_cast<std::unique_ptr<Instruction> &&>(_instruction);
+                    return;
+                }
+
+            } else {
+                _instruction = static_cast<std::unique_ptr<Instruction> &&>(_waitingInstruction);
+                _mem.Response(_instruction, _csrf.getNumCycles());
+            }
+            // Write + Write
+            _rf.Write(_instruction);
+            _csrf.Write(_instruction);
+            _csrf.InstructionExecuted();
+            _ip = _instruction->_nextIp;
+        }
     }
 
     void Reset(Word ip)
@@ -54,7 +72,11 @@ private:
     RegisterFile _rf;
     CsrFile _csrf;
     Executor _exe;
-    Memory& _mem;
+    bool _memoryWaiting;
+    InstructionPtr _instruction;
+    InstructionPtr _waitingInstruction;
+    CachedMem& _mem;
+    // Add your code here, if needed
 };
 
 
