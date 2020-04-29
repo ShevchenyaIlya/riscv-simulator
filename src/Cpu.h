@@ -25,7 +25,7 @@ public:
         {
             if (!_waitingInstruction) {
                 _mem.Request(this->_ip);
-                std::optional<Word> instr = _mem.Response(_csrf.getNumCycles());
+                std::optional<Word> instr = _mem.Response(_csrf.getCycleNumber());
 
                 if (instr == std::optional<Word>())
                     return;
@@ -37,7 +37,7 @@ public:
                 _exe.Execute(_instruction, _ip);
                 // Memory request
                 _mem.Request(_instruction);
-                _memoryWaiting = _mem.Response(_instruction, _csrf.getNumCycles());
+                _memoryWaiting = _mem.Response(_instruction, _csrf.getCycleNumber());
                 if (!_memoryWaiting) {
                     _waitingInstruction = static_cast<std::unique_ptr<Instruction> &&>(_instruction);
                     return;
@@ -45,7 +45,7 @@ public:
 
             } else {
                 _instruction = static_cast<std::unique_ptr<Instruction> &&>(_waitingInstruction);
-                _mem.Response(_instruction, _csrf.getNumCycles());
+                _mem.Response(_instruction, _csrf.getCycleNumber());
             }
             // Write + Write
             _rf.Write(_instruction);
@@ -72,11 +72,10 @@ private:
     RegisterFile _rf;
     CsrFile _csrf;
     Executor _exe;
+    CachedMem& _mem;
     bool _memoryWaiting;
     InstructionPtr _instruction;
     InstructionPtr _waitingInstruction;
-    CachedMem& _mem;
-    // Add your code here, if needed
 };
 
 
